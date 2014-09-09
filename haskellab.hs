@@ -1,38 +1,43 @@
-import test.QuickCheck
+module BlackJack where
+import Cards
+import Wrapper
+import Test.QuickCheck
 
---data type for suit of a cards
-Data Suit =♠| ♥ |♣ |♦
- deriving (Eq,Show)
+aCard1::Card
+aCard1 = Card Spades Ace
 
---data type for the color of cards
-Data Color = Black|Red
- deriving (Eq,Show)
+aCard2::Card
+aCard2 = Card Spades King
 
+empty::Hand
+empty=Empty
 
-color::Suit -> Color
-color ♠ =Black
-color ♥ =Red
-color ♣=Black
-color ♦=Red
+valueRank::Rank->Integer
+valueRank (Numeric i) = i
+valueRank Ace         = 11 --ToDo || check if its one
+valueRank King        = 10
+valueRank Queen       = 10
+valueRank Jack        = 10
 
---type for rank of a card
-Data Rank= Numeric Integer |Jack|Queen|King|Ace
-	deriving (Eq,Show)
+valueCard::Card->Integer
+valueCard (Card r c) = valueRank v
 
---Rankbeats rank1 rank2 checks if rank1 beats rank2
-rankBeats:: Rank-> Rank->Bool
-rankBeats  _ Ace = false
-rankBeats Ace _ = true
-rankBeats  _ King = false
-rankBeats King _ = true
-rankBeats  _ Queen = false
-rankBeats Queen _ = true
-rankBeats  _ Jack = false
-rankBeats Jack _ = true
-rankBeats (Numeric m) (Numeric n) = m > n
+numberOfAces::Hand->Integer
+numberOfAces Empty = 0
+numberOfAces
+numberOfAces
 
-prop_RankBeats a b =
- a /= b ==>
-	rankBeats a b || rankBeats b a 
-	
+value::Hand->Interger
+value hand| 
+	  | otherwise valueofhand
+
+gameOver::Hand->Bool
+gameOver hand= valueofhand > 21
+
+winner::Hand->Hand->Player
+winner handOfGuest handOfBank | gameover(handOfGuest) = Bank 
+                              | gameover(handOfBank) = Guest
+                              | handOfGuest < handOfBank = Bank
+                              | handOfGuest > handOfBank = Guest
+                              | handOfGuest == handOfBank= Bank
 
