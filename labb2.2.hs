@@ -76,6 +76,14 @@ prop_size_onTopOf p1 p2 =(size p1)+(size p2) == size (p1<+p2)
 allTheSuits:: Suit->Hand -- all the suits in the cards 
 allTheSuits r = (Add(Card Ace r )(Add(Card King r )(Add(Card Queen r )(Add (Card Jack r)(Add (Card(Numeric 10)r)(Add(Card(Numeric 9)r)(Add(Card(Numeric 8)r)(Add(Card(Numeric 7) r)(Add(Card(Numeric 6) r)(Add(Card(Numeric 5) r)(Add(Card(Numeric 4)r)(Add(Card(Numeric 3)r)(Add(Card(Numeric 2) r) Empty)))))))))))))
 
+--allTheSuits r = (Add(Card Ace r )(Add(Card King r )(Add(Card Queen r )(Add (Card Jack r)(Add (Card(Numeric x+(Numeric(x+1)r)Empty)))))
+
+--allTheSuits r =[(Card (Numeric x) hearts)| x <- [2..10]] (Add(Card Ace r )(Add(Card King r )(Add(Card Queen r )(Add (Card Jack r)Empty))))
+
+--(Add(Card(Numeric x+(x+1))))
+--ToDo recussion with allsuits
+--Have to chek for the recursion of all the cards though :9
+
 fullDeck::Hand -- all the colors for the in a deck of cards
 fullDeck =(allTheSuits Spades)<+(allTheSuits Hearts)<+(allTheSuits Clubs)<+ (allTheSuits Diamonds)
 
@@ -107,7 +115,7 @@ shuffle g deck = second (shuffle' g deck Empty)
 shuffle'::StdGen ->Hand->Hand-> (Hand,Hand) -- the helper function which picks a card from the  deck and plces it into another deck 
 shuffle' g  deck deck2 | deck  == Empty = (Empty,deck2)
 		       | otherwise      = (shuffle' g' (removeLeCard deck i) (Add (pickLeCard deck i) deck2))
- where (i,g') = randomR(1,size deck)
+ where (i,g') = randomR(1,size deck) g
 
 	
 prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool -- a function which checks if the same card have been shuffled
@@ -118,3 +126,21 @@ belongsTo :: Card -> Hand -> Bool -- a helperfunction which checks if the card i
 c `belongsTo` Empty    = False
 c `belongsTo` Add c' h = c == c' || c `belongsTo` h
 
+
+prop_size_shuffle::StdGen-> Hand-> Bool -- checks the size of the fulldeck and the size of the shuffle fulldeck.
+prop_size_shuffle g fulldeck =  size fulldeck ==  size(shuffle  g fulldeck)
+	 
+
+implementation = Interface -- the implemation of the interface
+  {  iEmpty     = empty
+  ,  iFullDeck  = fullDeck
+  ,  iValue     = value
+  ,  iGameOver  = gameOver
+  ,  iWinner    = winner
+  ,  iDraw      = draw
+  ,  iPlayBank  = playBank
+  ,  iShuffle   = shuffle
+  }
+
+main::IO ()
+main = runGame implementation
