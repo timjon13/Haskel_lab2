@@ -22,6 +22,8 @@ aCard2 = (Card Ace Clubs)-- The card being created
 aHand::Hand --Makes a hand from the two Cards
 aHand= (Add aCard1 (Add aCard2 (Empty))) 
 
+second::(Hand,Hand) -> Hand
+second (_,x) = x
 
 empty::Hand -- Makes a Function if hand is empty
 empty = Empty 
@@ -62,13 +64,11 @@ winner handOfGuest handOfBank | gameOver handOfGuest = Bank
 
 
 (<+):: Hand->Hand->Hand -- given two hands adds one hand to the other  
-Empty <+ aHand2 = aHand2
-aHand <+ aHand2 =  (aHand+aHand2)
-
+(<+) Empty aHand2 = aHand2
+(<+) (Add card aHand) aHand2 = (Add card (aHand<+aHand2))
 
 prop_onTopOf_assoc :: Hand -> Hand -> Hand -> Bool 
 prop_onTopOf_assoc p1 p2 p3 = p1 <+ (p2 <+ p3) == (p1 <+ p2) <+ p3
-
 
 prop_size_onTopOf:: Hand->Hand->Bool -- compares the two sizes of the hands and returns a bool
 prop_size_onTopOf p1 p2 =(size p1)+(size p2) == size (p1<+p2)
@@ -92,24 +92,22 @@ playBank' deck  bankHand
    | otherwise             = bankHand
  where (deck', bankHand')  = draw deck bankHand
 
-pickLeCard ::Hand-> Integer-> Card --picks a card randomly from the deck 
-pickLeCard hand v | v == 1    = (hand)
-		  | otherwise = pickLeCard hand (v-1)
+pickLeCard ::Hand-> Integer-> Card --picks a card randomly from the deck
+pickLeCard Empty _ = error "Picking from an empty hand. " 
+pickLeCard (Add card hand) v | v == 1    = card
+		             | otherwise = pickLeCard hand (v-1)
 
 removeLeCard::Hand-> Integer-> Hand --Removes a card from the deck which is random 
-removeLeCard (Add(Card aHand)) n| n == 1    = aHand 
-                                | otherwise = (Add(Card(removeLeCard ahand(n-1))))                  
+removeLeCard (Add card aHand) n| n == 1    = aHand 
+                               | otherwise = (Add card (removeLeCard aHand (n-1)))                  
 
-	
 shuffle::StdGen->Hand->Hand   --The main function which does the shuffle function,which calls on the helper function and place the new card in the new deck. 
-shuffle g deck |deck == Empty = 0
-               | otherwise shuffle g = shuffle' g'  
- where( i,g') = g 
+shuffle g deck = second (shuffle' g deck Empty)  
 
 shuffle'::StdGen ->Hand->Hand-> (Hand,Hand) -- the helper function which picks a card from the  deck and plces it into another deck 
 shuffle' g  deck deck2 | deck  == Empty = (Empty,deck2)
-		       | otherwise deck =((Add(pickLeCard i deck)deck2),(Add(removeLeCard i deck)(Add(pickLeCard(deck2))))
- where (i,g') = randomR(1,52)
+		       | otherwise      = (shuffle' g' (removeLeCard deck i) (Add (pickLeCard deck i) deck2))
+ where (i,g') = randomR(1,size deck)
 
 	
 prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool -- a function which checks if the same card have been shuffled
@@ -120,6 +118,3 @@ belongsTo :: Card -> Hand -> Bool -- a helperfunction which checks if the card i
 c `belongsTo` Empty    = False
 c `belongsTo` Add c' h = c == c' || c `belongsTo` h
 
-prop_size_shuffle ::StdGen-> Hand ->Bool -- checks the size of all th cards in the deck 
-prop_size_shuffle g c =
- g`belongsTo` c == c  `belongsTo` size g
